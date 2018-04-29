@@ -93,8 +93,10 @@ class CipherCracker
       if word_block.match(/^[A-Z]+$/)
         0.5
       elsif word_block.match(/^[a-z]+$/)
-        if Language.english.is_word?(word_block)
-          1
+        if Language.english.is_common_word?(word_block)
+          2.0
+        elsif Language.english.is_word?(word_block)
+          1.0
         else
           0
         end
@@ -189,6 +191,10 @@ class Language
 
   def is_word?(word)
     words.has_key?(word)
+  end
+
+  def is_common_word?(word)
+    common_words.has_key?(word)
   end
 
   def match_word?(regex)

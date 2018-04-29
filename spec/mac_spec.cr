@@ -5,26 +5,36 @@ describe CipherCracker do
   subject = CipherCracker.new
 
   describe "partial_key_score" do
-    partial_key = { 'A' => 'd', 'B' => 'o', 'C' => 'g' }
+    partial_key = { 'A' => 'd', 'B' => 'o', 'C' => 'g', 'D' => 'e' }
+
+    it "all words are deciphered and are common words" do
+      subject.partial_key_score(partial_key, "ABC").
+        should eq 2.0
+    end
 
     it "all words are deciphered and are dictionary words" do
-      subject.partial_key_score(partial_key, "ABC CBA").
+      subject.partial_key_score(partial_key, "ABCD").
         should eq 1.0
     end
 
-    it "2 words are deciphered common and two could match words" do
-      subject.partial_key_score(partial_key, "ABC XYZ CXZ CBA").
-        should eq 0.75
-    end
-
-    it "2 words are deciphered words and one could match a word and the other not" do
-      subject.partial_key_score(partial_key, "ABC XYZ CCZ CBA").
-        should eq 0.625
+    it "all words are not yet deciphered but could still match words" do
+      subject.partial_key_score(partial_key, "CXZ").
+        should eq 0.5
     end
 
     it "all words are deciphered and none are dictionary words" do
       subject.partial_key_score(partial_key, "ACB CAB").
-        should eq 0
+        should eq 0.0
+    end
+
+    it "all words are not yet deciphered but already can't match words" do
+      subject.partial_key_score(partial_key, "CCZ").
+        should eq 0.0
+    end
+
+    it "2 words are deciphered words and one could match a word and the other not" do
+      subject.partial_key_score(partial_key, "ABC XYZ CCZ CBA").
+        should eq 1.125
     end
   end
 
