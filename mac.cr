@@ -25,7 +25,7 @@ class CipherCracker
   def decode(cipher_text)
     simplified_cipher_text = Language.english.split_into_words(cipher_text).uniq.join(" ")
     partial_decipher = cipher_text
-
+    keys_to_expand_each_iteration = 3
     puts "decoding"
 
     keys_with_scores = [{ Hash(Char, Char).new, 0.0 }]
@@ -33,7 +33,7 @@ class CipherCracker
     while !partial_decipher.match(/[A-Z]/).nil?
       puts "generating next range of keys: current size: " + keys_with_scores.size.to_s
 
-      new_keys = keys_with_scores.first(5).map do |key_with_score|
+      new_keys = keys_with_scores.first(keys_to_expand_each_iteration).map do |key_with_score|
         key = key_with_score.first
         letter = next_coded_letter_to_decipher(key, simplified_cipher_text)
         if letter
@@ -46,8 +46,8 @@ class CipherCracker
       end.
       flatten
 
-      if keys_with_scores.size > 5
-        keys_with_scores = keys_with_scores.last(keys_with_scores.size - 5) + new_keys
+      if keys_with_scores.size > keys_to_expand_each_iteration
+        keys_with_scores = keys_with_scores.last(keys_with_scores.size - keys_to_expand_each_iteration) + new_keys
       else
         keys_with_scores = new_keys
       end
