@@ -28,32 +28,37 @@ class CipherCracker
 
     puts "decoding"
 
-    keys = Array(Hash(Char, Char)).new
-    keys << Hash(Char, Char).new
+    keys_with_scores = [{ Hash(Char, Char).new, 0.0 }]
 
     while !partial_decipher.match(/[A-Z]/).nil?
-      puts "generating next range of keys: current size: " + keys.size.to_s
+      puts "generating next range of keys: current size: " + keys_with_scores.size.to_s
 
-      keys = keys.map do |key|
+      new_keys = keys_with_scores.first(5).map do |key_with_score|
+        key = key_with_score.first
         letter = next_coded_letter_to_decipher(key, simplified_cipher_text)
         if letter
-          generate_possible_next_keys(key, letter)
+          generate_possible_next_keys(key, letter).map do |new_key|
+            { new_key, partial_key_score(new_key, simplified_cipher_text) }
+          end
         else
-          [key]
+          [key_with_score]
         end
       end.
-      flatten.
-      sort_by do |next_key|
-        partial_key_score(next_key, simplified_cipher_text)
-      end.reverse
+      flatten
 
-      if keys.size > 50
-        keys = keys.first(50)
+      if keys_with_scores.size > 5
+        keys_with_scores = keys_with_scores.last(keys_with_scores.size - 5) + new_keys
+      else
+        keys_with_scores = new_keys
       end
 
-      if keys.size > 0
-        partial_decipher = MonoalphabeticSubstitutionCipher.new(keys.first).decode(cipher_text)
+      keys_with_scores = keys_with_scores.sort_by { |t| t.last }.reverse
+
+      if keys_with_scores.size > 0
+        best_tuple = keys_with_scores.first
+        partial_decipher = MonoalphabeticSubstitutionCipher.new(best_tuple.first).decode(cipher_text)
         puts "Current best decoding: " + partial_decipher
+        puts "Current score: " + best_tuple.last.to_s
       end
     end
 
