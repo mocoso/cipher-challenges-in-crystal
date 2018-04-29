@@ -47,8 +47,8 @@ class CipherCracker
         partial_key_score(next_key, simplified_cipher_text)
       end.reverse
 
-      if keys.size > 10
-        keys = keys.first(10)
+      if keys.size > 50
+        keys = keys.first(50)
       end
 
       if keys.size > 0
@@ -95,7 +95,7 @@ class CipherCracker
         end
       else
         word_block_matcher = Regex.new "^#{word_block.gsub(/[A-Z]/, code_match_regex_part)}$", Regex::Options::MULTILINE
-        Language.english.match_word?(word_block_matcher) ? 0.5 : 0
+        Language.english.match_common_word?(word_block_matcher) ? 0.5 : 0
       end
     }
 
@@ -147,14 +147,19 @@ end
 class Language
   @words : Hash(String, Bool)
   @word_list : String
+  @common_words : Hash(String, Bool)
+  @common_word_list : String
 
   def self.english
-    @@english ||= Language.new("/usr/share/dict/words")
+    @@english ||= Language.new("/usr/share/dict/words", "./data/10000-common-english-words.txt")
   end
 
-  def initialize(dictionary_file_path : String)
-    @words = load_words(dictionary_file_path)
-    @word_list = @words.keys.join("\n")
+  def initialize(dictionary_file_path : String, common_words_file_path : String)
+    @words = load_words dictionary_file_path
+    @word_list = @words.keys.join "\n"
+
+    @common_words = load_words common_words_file_path
+    @common_word_list = @common_words.keys.join "\n"
   end
 
   def word_list
@@ -163,6 +168,14 @@ class Language
 
   def words
     @words
+  end
+
+  def common_word_list
+    @common_word_list
+  end
+
+  def common_words
+    @common_words
   end
 
   def split_into_words(text)
@@ -175,6 +188,10 @@ class Language
 
   def match_word?(regex)
     !word_list.match(regex).nil?
+  end
+
+  def match_common_word?(regex)
+    !common_word_list.match(regex).nil?
   end
 
   def number_of_english_words(text)

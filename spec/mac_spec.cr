@@ -65,6 +65,18 @@ describe Language do
         }
     end
 
+    describe "match_common_word?" do
+      it "should find there are 3 letter words starting with a" {
+        Language.english.match_common_word?(/^a[^a][^a]$/m).
+          should eq true
+      }
+
+      it "should not find there are 3 letter words starting with qq" {
+        Language.english.match_common_word?(/^qq[^q]$/m).
+          should eq false
+      }
+    end
+
     describe "match_word?" do
       it "should find there are 3 lette words starting with a" {
         Language.english.match_word?(/^a[^a][^a]$/m).
